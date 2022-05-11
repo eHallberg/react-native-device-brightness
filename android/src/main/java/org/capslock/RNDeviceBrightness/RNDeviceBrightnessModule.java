@@ -16,7 +16,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 
 public class RNDeviceBrightnessModule extends ReactContextBaseJavaModule {
-	public RNDeviceBrightnessModule(ReactApplicationContext reactContext) {
+  public RNDeviceBrightnessModule(ReactApplicationContext reactContext) {
     super(reactContext);
   }
 
@@ -31,10 +31,14 @@ public class RNDeviceBrightnessModule extends ReactContextBaseJavaModule {
     if (activity == null) {
       return;
     }
-    
+
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        // Added after
+        if (activity == null) {
+          return;
+        }
         WindowManager.LayoutParams lp = activity.getWindow().getAttributes();
         lp.screenBrightness = brightnessLevel;
         activity.getWindow().setAttributes(lp);
@@ -44,13 +48,24 @@ public class RNDeviceBrightnessModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getBrightnessLevel(Promise promise) {
-    WindowManager.LayoutParams lp = getCurrentActivity().getWindow().getAttributes();
-    promise.resolve(lp.screenBrightness);
+    // Added after
+    if(getCurrentActivity() != null) {
+        WindowManager.LayoutParams lp = getCurrentActivity().getWindow().getAttributes();
+        promise.resolve(lp.screenBrightness);
+      } else {
+        // Added after
+        promise.resolve(null);
+      }
   }
 
   @ReactMethod
   public void getSystemBrightnessLevel(Promise promise){
-    String brightness = Settings.System.getString(getCurrentActivity().getContentResolver(), "screen_brightness");
-    promise.resolve(Integer.parseInt(brightness)/255f);
+    if(getCurrentActivity() != null) {
+      String brightness = Settings.System.getString(getCurrentActivity().getContentResolver(), "screen_brightness");
+      promise.resolve(Integer.parseInt(brightness)/255f);
+    } else {
+      promise.resolve(null);
+    }
+
   }
 }
